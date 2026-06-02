@@ -1,5 +1,8 @@
 /**
  * src/features/auth/components/LoginForm.tsx
+ *
+ * Authenticates existing users and establishes sessions.
+ * Integrates React Hook Form with Zod for strict data validation.
  */
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
@@ -11,18 +14,14 @@ import { authService } from "@/features/auth/services/authService";
 import { loginSchema, type LoginDTO } from "../validation/authSchema";
 
 /**
- * LoginForm Component
- * Handles user authentication, session initiation, and navigation.
- * Utilizes React Hook Form for performant, uncontrolled state management.
+ * Renders the login interface and handles credential submission.
+ *
+ * @returns {JSX.Element} The login form component.
  */
 export function LoginForm() {
   const navigate = useNavigate();
-
-  // We only use standard state for the global network/API error now.
-  // Field-level validation is handled entirely by React Hook Form.
   const [globalError, setGlobalError] = useState<string | null>(null);
 
-  // Initialize React Hook Form with our strictly typed Zod schema
   const {
     register,
     handleSubmit,
@@ -36,8 +35,10 @@ export function LoginForm() {
   });
 
   /**
-   * Submits credentials to AuthService and redirects on success.
-   * This is only triggered if the Zod schema passes validation.
+   * Submits validated credentials to the authentication service.
+   * Redirects to the dashboard upon successful authentication.
+   *
+   * @param {LoginDTO} data - The validated user credentials.
    */
   const onSubmit = async (data: LoginDTO) => {
     setGlobalError(null);
@@ -45,7 +46,6 @@ export function LoginForm() {
       await authService.signIn(data);
       navigate("/dashboard");
     } catch (err: unknown) {
-      // Senior practice: Strict type checking on unknown catch errors
       const errorMessage =
         err instanceof Error ? err.message : "Invalid email or password.";
       setGlobalError(errorMessage);
@@ -53,8 +53,9 @@ export function LoginForm() {
   };
 
   return (
+    /* Main Form Container */
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {/* Global API Error Banner */}
+      {/* Global Error Banner */}
       {globalError && (
         <div className="bg-destructive/10 p-3 rounded-lg border border-destructive/20 animate-in fade-in duration-300">
           <p className="text-sm text-destructive font-medium text-center">
@@ -63,12 +64,9 @@ export function LoginForm() {
         </div>
       )}
 
-      {/* 
-        We use space-y-8 to account for the absolute positioned field errors 
-        that render below the inputs, preventing overlapping text.
-      */}
+      {/* Form Fields Wrapper */}
       <div className="space-y-8 pb-2">
-        {/* Email Field */}
+        {/* Email Input Field */}
         <Input
           id="email"
           type="email"
@@ -78,7 +76,7 @@ export function LoginForm() {
           {...register("email")}
         />
 
-        {/* Password Field Group */}
+        {/* Password Input Group */}
         <div className="space-y-2">
           <Input
             id="password"
@@ -88,6 +86,8 @@ export function LoginForm() {
             error={errors.password?.message}
             {...register("password")}
           />
+
+          {/* Password Recovery Link */}
           <div className="flex justify-end pt-2">
             <Link
               to="/forgot-password"
@@ -99,10 +99,12 @@ export function LoginForm() {
         </div>
       </div>
 
+      {/* Form Submit Action */}
       <Button type="submit" className="w-full" isLoading={isSubmitting}>
         Sign In
       </Button>
 
+      {/* Registration Redirect Link */}
       <div className="pt-2 text-center">
         <p className="text-sm text-muted-foreground">
           New to FreelanceFlow?{" "}

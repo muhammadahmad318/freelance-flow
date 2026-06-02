@@ -1,11 +1,18 @@
-import React from "react";
+/**
+ * src/features/auth/pages/LoginPage.tsx
+ *
+ * Entry point for the authentication module's login flow.
+ * Wraps the LoginForm within the standardized AuthLayout.
+ */
 import { AuthLayout } from "@/features/auth/components/AuthLayout";
 import { LoginForm } from "@/features/auth/components/LoginForm";
 
 /**
- * LoginPage entry point for the Auth module.
+ * Renders the login page view.
+ *
+ * @returns {JSX.Element} The composed login page.
  */
-const LoginPage: React.FC = () => {
+export default function LoginPage() {
   return (
     <AuthLayout
       title="Welcome back"
@@ -14,6 +21,4 @@ const LoginPage: React.FC = () => {
       <LoginForm />
     </AuthLayout>
   );
-};
-
-export default LoginPage;
+}

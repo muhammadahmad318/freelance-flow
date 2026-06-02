@@ -1,5 +1,8 @@
 /**
  * src/features/auth/components/SignupForm.tsx
+ *
+ * Handles new user registration with strict Zod validation.
+ * Integrates real-time password strength tracking.
  */
 import { useState } from "react";
 import { Link } from "react-router";
@@ -12,16 +15,14 @@ import { authService } from "@/features/auth/services/authService";
 import { signupSchema, type SignupDTO } from "../validation/authSchema";
 
 /**
- * SignupForm Component
- * Handles user registration logic with strict Zod validation.
- * Features real-time password strength tracking and dynamic floating labels.
+ * Renders the registration interface and handles data submission.
+ *
+ * @returns {JSX.Element} The signup form component.
  */
 export function SignupForm() {
-  // Global state solely tracks network responses, not field-level data
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  // Initialize highly performant, uncontrolled form state
   const {
     register,
     handleSubmit,
@@ -37,11 +38,12 @@ export function SignupForm() {
     },
   });
 
-  // Watch the password field specifically to feed our Strength Meter
   const passwordValue = watch("password");
 
   /**
-   * Submits the validated DTO to the backend layer.
+   * Submits validated user data to create a new account.
+   *
+   * @param {SignupDTO} data - The validated registration payload.
    */
   const onSubmit = async (data: SignupDTO) => {
     setGlobalError(null);
@@ -61,9 +63,9 @@ export function SignupForm() {
     }
   };
 
-  // Modernized Success State utilizing semantic and dynamic theme tokens
   if (isSuccess) {
     return (
+      /* Success State View */
       <div className="text-center space-y-4 animate-in fade-in duration-500">
         <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl">
           <p className="text-emerald-600 dark:text-emerald-500 font-medium">
@@ -82,6 +84,7 @@ export function SignupForm() {
   }
 
   return (
+    /* Main Form Container */
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* Global Error Banner */}
       {globalError && (
@@ -92,8 +95,9 @@ export function SignupForm() {
         </div>
       )}
 
-      {/* space-y-8 provides exact clearance for our absolute positioned floating error text */}
+      {/* Form Fields Wrapper */}
       <div className="space-y-8 pb-2">
+        {/* Name Input Field */}
         <Input
           id="name"
           type="text"
@@ -103,6 +107,7 @@ export function SignupForm() {
           {...register("name")}
         />
 
+        {/* Email Input Field */}
         <Input
           id="email"
           type="email"
@@ -112,17 +117,21 @@ export function SignupForm() {
           {...register("email")}
         />
 
-        <PasswordStrengthMeter password={passwordValue} />
+        {/* Password Input Group */}
+        <div className="space-y-1">
+          <Input
+            id="password"
+            type="password"
+            label="Password"
+            autoComplete="new-password"
+            error={errors.password?.message}
+            {...register("password")}
+          />
+          {/* Strength Meter */}
+          <PasswordStrengthMeter password={passwordValue} />
+        </div>
 
-        <Input
-          id="password"
-          type="password"
-          label="Password"
-          autoComplete="new-password"
-          error={errors.password?.message}
-          {...register("password")}
-        />
-
+        {/* Confirm Password Field */}
         <Input
           id="confirmPassword"
           type="password"
@@ -133,10 +142,12 @@ export function SignupForm() {
         />
       </div>
 
+      {/* Form Submit Action */}
       <Button type="submit" className="w-full mt-2" isLoading={isSubmitting}>
         Create Account
       </Button>
 
+      {/* Login Redirect Link */}
       <div className="pt-2 text-center">
         <p className="text-sm text-muted-foreground">
           Already have an account?{" "}

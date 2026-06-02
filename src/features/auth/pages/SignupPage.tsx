@@ -1,8 +1,18 @@
-import React from "react";
+/**
+ * src/features/auth/pages/SignupPage.tsx
+ *
+ * Entry point for the authentication module's registration flow.
+ * Wraps the SignupForm within the standardized AuthLayout.
+ */
 import { AuthLayout } from "@/features/auth/components/AuthLayout";
 import { SignupForm } from "@/features/auth/components/SignupForm";
 
-const SignupPage: React.FC = () => {
+/**
+ * Renders the registration page view.
+ *
+ * @returns {JSX.Element} The composed signup page.
+ */
+export default function SignupPage() {
   return (
     <AuthLayout
       title="Start your journey"
@@ -11,6 +21,4 @@ const SignupPage: React.FC = () => {
       <SignupForm />
     </AuthLayout>
   );
-};
-
-export default SignupPage;
+}

@@ -1,21 +1,28 @@
 /**
  * src/features/auth/components/PasswordStrengthMeter.tsx
  *
- * Evaluates a given password string against strict security criteria
- * and visualizes the strength using a progress bar and dynamic checklist.
+ * Evaluates password strings against strict security criteria.
+ * Visualizes strength via a progress bar and dynamic checklist.
  */
 import { cn } from "@/lib/utils";
 import { Check, X } from "lucide-react";
 
+/**
+ * @property {string} [password] - The current password string to evaluate.
+ */
 interface PasswordStrengthMeterProps {
   password?: string;
 }
 
+/**
+ * Renders a real-time password strength indicator and criteria checklist.
+ *
+ * @param {PasswordStrengthMeterProps} props - The component props.
+ * @returns {JSX.Element} The password strength meter UI.
+ */
 export function PasswordStrengthMeter({
   password = "",
 }: PasswordStrengthMeterProps) {
-  // 1. Evaluate Criteria
-  // These directly mirror the Regex rules defined in authSchema.ts
   const criteria = [
     { label: "At least 8 characters", isMet: password.length >= 8 },
     { label: "One uppercase letter", isMet: /[A-Z]/.test(password) },
@@ -26,29 +33,28 @@ export function PasswordStrengthMeter({
 
   const metCount = criteria.filter((c) => c.isMet).length;
 
-  // 2. Determine UI State Based on Score
   let strengthLabel = "Weak";
-  let barColorClass = "bg-muted"; // Default empty state
+  let barColorClass = "bg-muted";
 
   if (password.length > 0) {
     if (metCount <= 2) {
       strengthLabel = "Weak";
-      barColorClass = "bg-destructive"; // Maps to our Electric Pulse red
+      barColorClass = "bg-destructive";
     } else if (metCount === 3 || metCount === 4) {
       strengthLabel = "Moderate";
-      barColorClass = "bg-amber-500"; // Standard warning yellow/orange
+      barColorClass = "bg-amber-500";
     } else if (metCount === 5) {
       strengthLabel = "Strong";
-      barColorClass = "bg-emerald-500"; // Standard success green
+      barColorClass = "bg-emerald-500";
     }
   }
 
-  // Generate an array of 5 segments for the progress bar
   const progressSegments = Array.from({ length: 5 }, (_, i) => i < metCount);
 
   return (
+    /* Main Component Wrapper */
     <div className="w-full space-y-3 pt-1">
-      {/* Visual Progress Bar & Label */}
+      {/* Header and Strength Label */}
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-muted-foreground">
           Password strength
@@ -69,7 +75,7 @@ export function PasswordStrengthMeter({
         )}
       </div>
 
-      {/* 5-Segment Indicator */}
+      {/* Segmented Progress Bar */}
       <div className="flex gap-1 h-1.5 w-full">
         {progressSegments.map((isFilled, index) => (
           <div
@@ -82,7 +88,7 @@ export function PasswordStrengthMeter({
         ))}
       </div>
 
-      {/* Dynamic Requirements Checklist */}
+      {/* Requirements Checklist */}
       <ul className="space-y-1.5 pt-1">
         {criteria.map((criterion, index) => {
           const isMet = criterion.isMet;
