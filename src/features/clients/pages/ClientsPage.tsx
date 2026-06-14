@@ -9,7 +9,6 @@ import { CreateClientModal } from "../components/CreateClientModal";
 import { Button } from "@/components/ui/Button";
 
 export function ClientsPage() {
-  console.log("ClientsPage Mounted! Firing useClients hook...");
   const { data: clients, isLoading, isError, error } = useClients();
   const [isModalOpen, setIsModalOpen] = useState(false);
 

@@ -4,7 +4,7 @@
  * Service layer for the Client domain.
  * Encapsulates all external API and Database calls.
  */
-import type { Client, CreateClientDTO } from "../types/client";
+import type { Client, CreateClientDTO } from "@/features/clients/types/client";
 import { supabase } from "@/lib/supabase";
 
 export const clientService = {

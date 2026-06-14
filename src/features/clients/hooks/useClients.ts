@@ -5,8 +5,8 @@
  * Abstracts TanStack Query implementation details away from UI components.
  */
 
-import { clientService } from "../services/clientService";
-import type { CreateClientDTO } from "../types/client";
+import { clientService } from "@/features/clients/services/clientService";
+import type { CreateClientDTO } from "@/features/clients/types/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 // Centralized Query Key to prevent typo-induced cache bugs
