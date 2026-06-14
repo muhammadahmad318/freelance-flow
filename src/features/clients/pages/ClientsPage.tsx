@@ -6,8 +6,10 @@ import { useClients } from "../hooks/useClients";
 import { ClientList, ClientListSkeleton } from "../components/ClientList";
 import { EmptyState } from "@/components/EmptyState";
 import { CreateClientModal } from "../components/CreateClientModal";
+import { Button } from "@/components/ui/Button";
 
 export function ClientsPage() {
+  console.log("ClientsPage Mounted! Firing useClients hook...");
   const { data: clients, isLoading, isError, error } = useClients();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -19,26 +21,23 @@ export function ClientsPage() {
       {/* Page Header */}
       <div className="sm:flex sm:items-center sm:justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Clients</h1>
-          <p className="mt-2 text-sm text-gray-700">
+          {/* Swapped gray-900 to foreground and gray-700 to muted-foreground */}
+          <h1 className="text-2xl font-semibold text-foreground">Clients</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
             A list of all your clients including their name, contact details,
             and organization.
           </p>
         </div>
         <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-          <button
-            type="button"
-            onClick={openModal}
-            className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-colors"
-          >
-            Add Client
-          </button>
+          {/* Replaced raw HTML button with our Atomic component */}
+          <Button onClick={openModal}>Add Client</Button>
         </div>
       </div>
 
       {/* Render Logic */}
       {isError && (
-        <div className="rounded-md bg-red-50 p-4 border border-red-200 text-sm text-red-700">
+        // Swapped red-50/200/700 to our destructive design tokens
+        <div className="rounded-md bg-destructive/10 p-4 border border-destructive/20 text-sm text-destructive animate-in fade-in duration-300">
           Error loading clients:{" "}
           {error instanceof Error ? error.message : "Unknown error occurred"}
         </div>
@@ -51,12 +50,10 @@ export function ClientsPage() {
           title="No clients found"
           description="Get started by adding your first client to the system."
           action={
-            <button
-              onClick={openModal}
-              className="text-indigo-600 font-medium hover:text-indigo-500"
-            >
+            // Utilized the 'outline' variant of our Button for a cleaner look in the Empty State
+            <Button variant="outline" onClick={openModal}>
               + Add Client
-            </button>
+            </Button>
           }
         />
       )}
@@ -65,7 +62,7 @@ export function ClientsPage() {
         <ClientList clients={clients} />
       )}
 
-      {/* 5. Render Modal */}
+      {/* Render Modal */}
       <CreateClientModal isOpen={isModalOpen} onClose={closeModal} />
     </div>
   );

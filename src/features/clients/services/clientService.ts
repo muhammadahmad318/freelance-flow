@@ -2,20 +2,20 @@
  * src/features/clients/services/clientService.ts
  *
  * Service layer for the Client domain.
- * Encapsulates all external API/Database calls to keep components pure.
+ * Encapsulates all external API and Database calls.
  */
-
 import type { Client, CreateClientDTO } from "../types/client";
 import { supabase } from "@/lib/supabase";
 
 export const clientService = {
   /**
    * Fetches all clients for the authenticated user.
-   * Relies on Supabase RLS for tenant isolation.
+   * Relies on Supabase RLS policies for tenant isolation.
    *
-   * @returns {Promise<Client[]>} Array of mapped Client objects
+   * @returns Array of mapped Client objects.
    */
   async getClients(): Promise<Client[]> {
+    console.log("clientService.getClients EXECUTING!");
     const { data, error } = await supabase
       .from("clients")
       .select(
@@ -32,7 +32,7 @@ export const clientService = {
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("[clientService] Error fetching clients:", error.message);
+      console.error("CRITICAL: Failed to fetch clients.", error.message);
       throw new Error(error.message);
     }
 
@@ -41,15 +41,14 @@ export const clientService = {
 
   /**
    * Creates a new client record in the database.
-   * Supabase automatically handles the user_id injection via RLS policies.
    *
-   * @param {CreateClientDTO} payload - The validated client data
-   * @returns {Promise<Client>} The newly created client record mapped to camelCase
+   * @param payload - The validated client data.
+   * @returns The newly created client record.
    */
   async createClient(payload: CreateClientDTO): Promise<Client> {
     const { data, error } = await supabase
       .from("clients")
-      .insert(payload) // Payload keys (name, email, phone, company) perfectly match DB columns
+      .insert(payload)
       .select(
         `
         id,
@@ -61,11 +60,10 @@ export const clientService = {
         updatedAt:updated_at
       `,
       )
-      .single(); // Guarantees we return a single object, not an array
+      .single();
 
     if (error) {
-      console.error("[clientService] Error creating client:", error.message);
-      // Throwing standard Error allows React Query/Hook Form to catch and display it
+      console.error("CRITICAL: Failed to create client.", error.message);
       throw new Error(error.message);
     }
 
