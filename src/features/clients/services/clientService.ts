@@ -10,12 +10,10 @@ import { supabase } from "@/lib/supabase";
 export const clientService = {
   /**
    * Fetches all clients for the authenticated user.
-   * Relies on Supabase RLS policies for tenant isolation.
    *
    * @returns Array of mapped Client objects.
    */
   async getClients(): Promise<Client[]> {
-    console.log("clientService.getClients EXECUTING!");
     const { data, error } = await supabase
       .from("clients")
       .select(

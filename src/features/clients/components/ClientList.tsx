@@ -1,9 +1,9 @@
 /**
  * src/features/clients/components/ClientList.tsx
  *
- * Renders the tabular data for Clients.
- * Implemented with semantic design tokens for universal theme compatibility.
+ * Renders the tabular data for Clients and loading skeletons.
  */
+import React from "react";
 import type { Client } from "../types/client";
 
 interface ClientListProps {
@@ -16,12 +16,12 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
   day: "numeric",
 });
 
-export function ClientList({ clients }: ClientListProps) {
+export const ClientList: React.FC<ClientListProps> = ({ clients }) => {
   return (
-    // Swapped the black ring for a standard border utilizing our border tokens
+    /* Table Container */
     <div className="overflow-hidden shadow-sm border border-border rounded-lg">
       <table className="min-w-full divide-y divide-border">
-        {/* bg-muted/50 creates a subtle distinction for the header row */}
+        {/* Table Header */}
         <thead className="bg-muted/50">
           <tr>
             <th
@@ -53,7 +53,8 @@ export function ClientList({ clients }: ClientListProps) {
             </th>
           </tr>
         </thead>
-        {/* bg-background ensures the rows adapt perfectly to Dark Mode */}
+
+        {/* Table Body */}
         <tbody className="divide-y divide-border bg-background">
           {clients.map((client) => (
             <tr key={client.id} className="hover:bg-muted/50 transition-colors">
@@ -79,7 +80,6 @@ export function ClientList({ clients }: ClientListProps) {
                 {dateFormatter.format(new Date(client.createdAt))}
               </td>
               <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                {/* Mapped to our primary brand token */}
                 <button
                   className="text-primary hover:text-primary/80 transition-colors"
                   aria-label={`Edit ${client.name}`}
@@ -93,15 +93,13 @@ export function ClientList({ clients }: ClientListProps) {
       </table>
     </div>
   );
-}
+};
 
-/**
- * Renders a placeholder skeleton matching the table structure.
- */
-export function ClientListSkeleton() {
+export const ClientListSkeleton: React.FC = () => {
   const rows = Array.from({ length: 5 });
 
   return (
+    /* Skeleton Container */
     <div className="overflow-hidden shadow-sm border border-border rounded-lg animate-pulse">
       <table className="min-w-full divide-y divide-border">
         <thead className="bg-muted/50">
@@ -147,4 +145,4 @@ export function ClientListSkeleton() {
       </table>
     </div>
   );
-}
+};

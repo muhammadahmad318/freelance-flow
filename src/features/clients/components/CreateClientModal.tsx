@@ -2,10 +2,8 @@
  * src/features/clients/components/CreateClientModal.tsx
  *
  * Handles the creation of a new client.
- * Integrates React Hook Form with Zod validation, React Query mutations,
- * and our global Atomic UI components.
  */
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createClientSchema } from "../validation/clientSchema";
@@ -19,8 +17,10 @@ interface CreateClientModalProps {
   onClose: () => void;
 }
 
-export function CreateClientModal({ isOpen, onClose }: CreateClientModalProps) {
-  // 1. Setup Form with Zod Resolver
+export const CreateClientModal: React.FC<CreateClientModalProps> = ({
+  isOpen,
+  onClose,
+}) => {
   const {
     register,
     handleSubmit,
@@ -28,23 +28,15 @@ export function CreateClientModal({ isOpen, onClose }: CreateClientModalProps) {
     formState: { errors, isSubmitting },
   } = useForm<CreateClientDTO>({
     resolver: zodResolver(createClientSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      company: "",
-    },
+    defaultValues: { name: "", email: "", phone: "", company: "" },
   });
 
-  // 2. Setup React Query Mutation
   const { mutateAsync: createClient } = useCreateClient();
 
-  // 3. Reset form when modal closes to prevent stale data on reopen
   useEffect(() => {
     if (!isOpen) reset();
   }, [isOpen, reset]);
 
-  // 4. Form Submission Handler
   const onSubmit = async (data: CreateClientDTO) => {
     try {
       await createClient(data);
@@ -57,13 +49,14 @@ export function CreateClientModal({ isOpen, onClose }: CreateClientModalProps) {
   if (!isOpen) return null;
 
   return (
+    /* Main Modal Wrapper */
     <div
       className="relative z-50"
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true"
     >
-      {/* Background backdrop using semantic foreground with opacity */}
+      {/* Backdrop */}
       <div
         className="fixed inset-0 bg-foreground/50 backdrop-blur-sm transition-opacity"
         onClick={onClose}
@@ -71,8 +64,9 @@ export function CreateClientModal({ isOpen, onClose }: CreateClientModalProps) {
 
       <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
         <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-          {/* Modal Panel utilizing the new background and border tokens */}
+          {/* Modal Panel */}
           <div className="relative transform overflow-hidden rounded-xl bg-background border border-border px-4 pb-4 pt-5 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+            {/* Header */}
             <div className="mb-6">
               <h3
                 className="text-lg font-semibold leading-6 text-foreground"
@@ -85,8 +79,8 @@ export function CreateClientModal({ isOpen, onClose }: CreateClientModalProps) {
               </p>
             </div>
 
+            {/* Form */}
             <form onSubmit={handleSubmit(onSubmit)}>
-              {/* space-y-8 provides exact clearance for floating error text */}
               <div className="space-y-8 pb-4">
                 <Input
                   id="name"
@@ -96,7 +90,6 @@ export function CreateClientModal({ isOpen, onClose }: CreateClientModalProps) {
                   error={errors.name?.message}
                   {...register("name")}
                 />
-
                 <Input
                   id="email"
                   type="email"
@@ -105,7 +98,6 @@ export function CreateClientModal({ isOpen, onClose }: CreateClientModalProps) {
                   error={errors.email?.message}
                   {...register("email")}
                 />
-
                 <Input
                   id="phone"
                   type="text"
@@ -114,7 +106,6 @@ export function CreateClientModal({ isOpen, onClose }: CreateClientModalProps) {
                   error={errors.phone?.message}
                   {...register("phone")}
                 />
-
                 <Input
                   id="company"
                   type="text"
@@ -150,4 +141,4 @@ export function CreateClientModal({ isOpen, onClose }: CreateClientModalProps) {
       </div>
     </div>
   );
-}
+};
