@@ -4,7 +4,11 @@
  * Service layer for the Client domain.
  * Encapsulates all external API and Database calls.
  */
-import type { Client, CreateClientDTO } from "@/features/clients/types/client";
+import type {
+  Client,
+  CreateClientDTO,
+  UpdateClientDTO,
+} from "@/features/clients/types/client";
 import { supabase } from "@/lib/supabase";
 
 export const clientService = {
@@ -66,5 +70,52 @@ export const clientService = {
     }
 
     return data as Client;
+  },
+
+  /**
+   * Updates an existing client record.
+   *
+   * @param id - The unique identifier of the client to update.
+   * @param payload - The partial client data to update.
+   * @returns The updated client record.
+   */
+  async updateClient(id: string, payload: UpdateClientDTO): Promise<Client> {
+    const { data, error } = await supabase
+      .from("clients")
+      .update(payload)
+      .eq("id", id)
+      .select(
+        `
+        id,
+        name,
+        email,
+        phone,
+        company,
+        createdAt:created_at,
+        updatedAt:updated_at
+      `,
+      )
+      .single();
+
+    if (error) {
+      console.error("CRITICAL: Failed to update client.", error.message);
+      throw new Error(error.message);
+    }
+
+    return data as Client;
+  },
+
+  /**
+   * Deletes a client record from the database.
+   *
+   * @param id - The unique identifier of the client to delete.
+   */
+  async deleteClient(id: string): Promise<void> {
+    const { error } = await supabase.from("clients").delete().eq("id", id);
+
+    if (error) {
+      console.error("CRITICAL: Failed to delete client.", error.message);
+      throw new Error(error.message);
+    }
   },
 };
