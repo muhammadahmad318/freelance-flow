@@ -1,8 +1,12 @@
 /**
  * src/routes/index.tsx
+ *
+ * Application router configuration.
+ * Integrates Auth guards and the global Dashboard layout.
  */
 import { createBrowserRouter, Navigate } from "react-router";
 import { ProtectedRoute } from "@/routes/ProtectedRoute";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 
 // Auth Domain Pages
 import LoginPage from "@/features/auth/pages/LoginPage";
@@ -25,22 +29,33 @@ export const router = createBrowserRouter([
     element: <SignupPage />,
   },
   {
-    // The ProtectedRoute acts as our Layout Guard.
-    // Any route placed in these children is automatically secured.
+    // 1. The Security Guard: Validates the Supabase session first
     element: <ProtectedRoute />,
     children: [
       {
-        path: "/dashboard",
-        element: (
-          <div className="p-8">
-            <h1>Dashboard (Coming Soon)</h1>
-          </div>
-        ),
-      },
-      {
-        // New Client Management Route
-        path: "/dashboard/clients",
-        element: <ClientsPage />,
+        // 2. The Master Layout: Wraps all authenticated pages with the Sidebar & Header
+        element: <DashboardLayout />,
+        children: [
+          {
+            path: "/dashboard",
+            element: (
+              <div>
+                <h1 className="text-2xl font-semibold text-foreground">
+                  Dashboard
+                </h1>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Welcome to Electric Pulse. Metrics and AI insights coming
+                  soon.
+                </p>
+              </div>
+            ),
+          },
+          {
+            // 3. The Feature Page: Injected into the DashboardLayout's <Outlet />
+            path: "/dashboard/clients",
+            element: <ClientsPage />,
+          },
+        ],
       },
     ],
   },

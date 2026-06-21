@@ -38,3 +38,43 @@ export type CreateClientDTO = Omit<Client, "id" | "createdAt" | "updatedAt">;
  * Wraps the CreateClientDTO in a Partial utility, allowing granular updates.
  */
 export type UpdateClientDTO = Partial<CreateClientDTO>;
+
+/**
+ * Metadata accompanying paginated API responses.
+ * Used by the UI to render pagination controls and display total record counts.
+ */
+export interface PaginationMeta {
+  /** Total number of records matching the current query in the database */
+  totalRecords: number;
+  /** The current active page number */
+  currentPage: number;
+  /** Total number of available pages based on the limit */
+  totalPages: number;
+  /** Boolean flag indicating if a subsequent page exists */
+  hasNextPage: boolean;
+  /** Boolean flag indicating if a preceding page exists */
+  hasPreviousPage: boolean;
+}
+
+/**
+ * Standardized wrapper for paginated API responses.
+ * Ensures the data payload and calculation metadata are always delivered together.
+ */
+export interface PaginatedResponse<T> {
+  /** The array of requested domain entities */
+  data: T[];
+  /** Pagination metadata for UI rendering */
+  meta: PaginationMeta;
+}
+
+/**
+ * Query parameters accepted by the Client service layer for fetching records.
+ */
+export interface ClientQueryOptions {
+  /** The specific page of results to retrieve (1-indexed) */
+  page?: number;
+  /** The maximum number of records to return per page */
+  limit?: number;
+  /** Optional search string to filter records by name, email, or company */
+  search?: string;
+}

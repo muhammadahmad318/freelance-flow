@@ -1,20 +1,22 @@
 /**
  * src/components/ui/Table.tsx
  *
- * Global, reusable Table components utilizing the Electric Pulse design tokens.
+ * Global, reusable Table primitives utilizing the Electric Pulse design system.
  * Built with React.forwardRef to ensure DOM nodes can be accessed by parent components.
+ * Implements a bounded scroll container with sticky headers for large datasets.
  */
 import React from "react";
 
 /**
  * Primary wrapper for the table layout.
- * Establishes the outer border, shadow, and hidden overflow to ensure rounded corners render correctly.
+ * Establishes the bounded scroll area (max-h-[600px]) to enable sticky headers,
+ * alongside standard border and shadow definitions.
  */
 export const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement>
 >(({ className = "", ...props }, ref) => (
-  <div className="overflow-hidden shadow-sm border border-border rounded-lg">
+  <div className="relative w-full max-h-[371px] overflow-auto shadow-sm border border-border rounded-lg">
     <table
       ref={ref}
       className={`min-w-full divide-y divide-border ${className}`}
@@ -26,19 +28,24 @@ Table.displayName = "Table";
 
 /**
  * Container for the table's column headers.
- * Applies the muted background token to distinguish the header from the data rows.
+ * Fixed to the top of the scroll container via sticky positioning.
+ * Utilizes a solid background to prevent scrolling content from bleeding through.
  */
 export const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className = "", ...props }, ref) => (
-  <thead ref={ref} className={`bg-muted/50 ${className}`} {...props} />
+  <thead
+    ref={ref}
+    className={`sticky top-0 z-10 bg-muted [&_tr]:border-b ${className}`}
+    {...props}
+  />
 ));
 TableHeader.displayName = "TableHeader";
 
 /**
  * Container for the table's data rows.
- * Enforces vertical dividers between rows using the border token.
+ * Enforces vertical dividers between rows via the border token.
  */
 export const TableBody = React.forwardRef<
   HTMLTableSectionElement,

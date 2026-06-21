@@ -1,12 +1,13 @@
+/**
+ * src/styles/globals.css
+ *
+ * Electric Pulse Design System using Tailwind CSS v4.
+ */
+
 /* 1. Modern v4 Import */
 @import "tailwindcss";
 
-/* 
-  2. Tailwind v4 Theme Configuration 
-  This maps your raw CSS variables into Tailwind's utility classes.
-  Because your variables are HSL channels (e.g., 243 75% 59%), we wrap them in hsl() here.
-  This generates utilities like `bg-primary`, `text-destructive`, `border-border`, etc.
-*/
+/* 2. Tailwind v4 Theme Configuration */
 @theme {
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
@@ -25,10 +26,44 @@
 
   --color-border: hsl(var(--border));
 
-  /* Setting up radius tokens for consistent card/input corners */
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: var(--radius);
   --radius-lg: calc(var(--radius) + 2px);
+
+  /* Custom Animations configured directly in v4 */
+  --animate-fade-in: fade-in 0.3s ease-out;
+  --animate-slide-up: slide-up 0.4s ease-out;
+  --animate-pulse-subtle: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+
+  @keyframes fade-in {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slide-up {
+    0% {
+      transform: translateY(10px);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes pulse-subtle {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
 }
 
 /* 3. Base Layer: Global Tokens & Element Styles */
@@ -68,12 +103,10 @@
 
   /* Global Layout Wrapper Defaults */
   * {
-    /* Ensures all borders use our custom border color by default */
     @apply border-border;
   }
 
   body {
-    /* Cascades the Electric Pulse theme naturally down the DOM */
     @apply bg-background text-foreground transition-colors duration-300;
   }
 }
