@@ -2,11 +2,21 @@
  * src/features/clients/components/ClientList.tsx
  *
  * Renders the tabular data for Clients, loading skeletons, and row actions.
+ * Utilizes the global Table infrastructure and configuration-driven headers.
  */
 import React, { useState } from "react";
 import type { Client } from "@/features/clients/types/client";
 import { useDeleteClient } from "@/features/clients/hooks/useClients";
 import { EditClientModal } from "@/features/clients/components/EditClientModal";
+import { ActionModal } from "@/components/ui/ActionModal";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/Table";
 
 interface ClientListProps {
   clients: Client[];
@@ -18,24 +28,64 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
   day: "numeric",
 });
 
+/**
+ * Configuration array for table columns.
+ * Acts as the single source of truth for rendering both data headers and skeleton loaders.
+ */
+const tableHeaders = [
+  {
+    id: "name",
+    label: "Name",
+    className: "pl-4 sm:pl-6",
+    skeletonClass: "w-24",
+  },
+  {
+    id: "contact",
+    label: "Contact",
+    className: "",
+    skeletonClass: "w-32",
+  },
+  {
+    id: "company",
+    label: "Company",
+    className: "",
+    skeletonClass: "w-20",
+  },
+  {
+    id: "added",
+    label: "Added",
+    className: "",
+    skeletonClass: "w-16",
+  },
+  {
+    id: "actions",
+    label: "Actions",
+    className: "relative pl-3 pr-4 sm:pr-6",
+    srOnly: true,
+    skeletonClass: "w-10 ml-auto",
+  },
+];
+
+/**
+ * Primary data table component for the Client module.
+ * Handles inline editing triggers and destructive deletion workflows.
+ */
 export const ClientList: React.FC<ClientListProps> = ({ clients }) => {
   const [editingClient, setEditingClient] = useState<Client | null>(null);
-  const { mutateAsync: deleteClient } = useDeleteClient();
+  const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
+
+  const { mutateAsync: deleteClient, isPending: isDeleting } =
+    useDeleteClient();
 
   /**
-   * Executes a strict confirmation check before issuing the delete mutation.
-   *
-   * @param id - The client UUID.
-   * @param name - The client name for the confirmation prompt.
+   * Executes the delete mutation for the staged client record.
+   * Automatically clears the modal state upon successful execution.
    */
-  const handleDelete = async (id: string, name: string) => {
-    const isConfirmed = window.confirm(
-      `Are you sure you want to delete ${name}? This action cannot be undone.`,
-    );
-    if (!isConfirmed) return;
-
+  const confirmDeletion = async () => {
+    if (!clientToDelete) return;
     try {
-      await deleteClient(id);
+      await deleteClient(clientToDelete.id);
+      setClientToDelete(null);
     } catch (error) {
       console.error("Failed to delete client:", error);
     }
@@ -43,155 +93,133 @@ export const ClientList: React.FC<ClientListProps> = ({ clients }) => {
 
   return (
     <>
-      <div className="overflow-hidden shadow-sm border border-border rounded-lg">
-        <table className="min-w-full divide-y divide-border">
-          <thead className="bg-muted/50">
-            <tr>
-              <th
-                scope="col"
-                className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-foreground sm:pl-6"
-              >
-                Name
-              </th>
-              <th
-                scope="col"
-                className="px-3 py-3.5 text-left text-sm font-semibold text-foreground"
-              >
-                Contact
-              </th>
-              <th
-                scope="col"
-                className="px-3 py-3.5 text-left text-sm font-semibold text-foreground"
-              >
-                Company
-              </th>
-              <th
-                scope="col"
-                className="px-3 py-3.5 text-left text-sm font-semibold text-foreground"
-              >
-                Added
-              </th>
-              <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                <span className="sr-only">Actions</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border bg-background">
-            {clients.map((client) => (
-              <tr
-                key={client.id}
-                className="hover:bg-muted/50 transition-colors"
-              >
-                {/* Name */}
-                <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-foreground sm:pl-6">
-                  {client.name}
-                </td>
-
-                {/* Contact */}
-                <td className="whitespace-nowrap px-3 py-4 text-sm text-muted-foreground">
-                  <div className="flex flex-col">
-                    <span>{client.email}</span>
-                    {client.phone && (
-                      <span className="text-xs opacity-70 mt-0.5">
-                        {client.phone}
-                      </span>
-                    )}
-                  </div>
-                </td>
-
-                {/* Company */}
-                <td className="whitespace-nowrap px-3 py-4 text-sm text-muted-foreground">
-                  {client.company || (
-                    <span className="italic opacity-50">N/A</span>
-                  )}
-                </td>
-
-                {/* Added Date */}
-                <td className="whitespace-nowrap px-3 py-4 text-sm text-muted-foreground">
-                  {dateFormatter.format(new Date(client.createdAt))}
-                </td>
-
-                {/* Actions Column */}
-                <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 space-x-4">
-                  <button
-                    onClick={() => setEditingClient(client)}
-                    className="text-primary hover:text-primary/80 transition-colors"
-                    aria-label={`Edit ${client.name}`}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(client.id, client.name)}
-                    className="text-destructive hover:text-destructive/80 transition-colors"
-                    aria-label={`Delete ${client.name}`}
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
+      <Table>
+        <TableHeader>
+          <TableRow className="hover:bg-transparent">
+            {tableHeaders.map((header) => (
+              <TableHead key={header.id} className={header.className}>
+                {header.srOnly ? (
+                  <span className="sr-only">{header.label}</span>
+                ) : (
+                  header.label
+                )}
+              </TableHead>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {clients.map((client) => (
+            <TableRow key={client.id}>
+              {/* Name */}
+              <TableCell className="pl-4 sm:pl-6 font-medium text-foreground">
+                {client.name}
+              </TableCell>
 
-      {/* Edit Modal controlled by row state */}
+              {/* Contact */}
+              <TableCell>
+                <div className="flex flex-col">
+                  <span>{client.email}</span>
+                  {client.phone && (
+                    <span className="text-xs opacity-70 mt-0.5">
+                      {client.phone}
+                    </span>
+                  )}
+                </div>
+              </TableCell>
+
+              {/* Company */}
+              <TableCell>
+                {client.company || (
+                  <span className="italic opacity-50">N/A</span>
+                )}
+              </TableCell>
+
+              {/* Added Date */}
+              <TableCell>
+                {dateFormatter.format(new Date(client.createdAt))}
+              </TableCell>
+
+              {/* Actions Column */}
+              <TableCell className="text-right font-medium pr-4 sm:pr-6 space-x-4">
+                <button
+                  onClick={() => setEditingClient(client)}
+                  className="text-primary hover:text-primary/80 transition-colors"
+                  aria-label={`Edit ${client.name}`}
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => setClientToDelete(client)}
+                  className="text-destructive hover:text-destructive/80 transition-colors"
+                  aria-label={`Delete ${client.name}`}
+                >
+                  Delete
+                </button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+
       <EditClientModal
         isOpen={!!editingClient}
         onClose={() => setEditingClient(null)}
         client={editingClient}
       />
+
+      <ActionModal
+        isOpen={!!clientToDelete}
+        onClose={() => setClientToDelete(null)}
+        title="Delete Client"
+        description={`Are you sure you want to delete ${clientToDelete?.name}? This action cannot be undone and will permanently remove them from your database.`}
+        actionLabel="Delete Client"
+        variant="destructive"
+        onAction={confirmDeletion}
+        isProcessing={isDeleting}
+      />
     </>
   );
 };
 
+/**
+ * Placeholder table component matching the structural dimensions of the ClientList.
+ * Utilizes the shared tableHeaders configuration to maintain visual alignment.
+ */
 export const ClientListSkeleton: React.FC = () => {
   const rows = Array.from({ length: 5 });
 
   return (
-    /* Skeleton Container */
-    <div className="overflow-hidden shadow-sm border border-border rounded-lg animate-pulse">
-      <table className="min-w-full divide-y divide-border">
-        <thead className="bg-muted/50">
-          <tr>
-            <th scope="col" className="py-3.5 pl-4 pr-3 sm:pl-6">
-              <div className="h-4 bg-muted rounded w-24"></div>
-            </th>
-            <th scope="col" className="px-3 py-3.5">
-              <div className="h-4 bg-muted rounded w-32"></div>
-            </th>
-            <th scope="col" className="px-3 py-3.5">
-              <div className="h-4 bg-muted rounded w-20"></div>
-            </th>
-            <th scope="col" className="px-3 py-3.5">
-              <div className="h-4 bg-muted rounded w-16"></div>
-            </th>
-            <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
-              <span className="sr-only">Actions</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border bg-background">
-          {rows.map((_, idx) => (
-            <tr key={idx}>
-              <td className="whitespace-nowrap py-4 pl-4 pr-3 sm:pl-6">
-                <div className="h-4 bg-muted rounded w-32"></div>
-              </td>
-              <td className="whitespace-nowrap px-3 py-4">
-                <div className="h-4 bg-muted rounded w-40"></div>
-              </td>
-              <td className="whitespace-nowrap px-3 py-4">
-                <div className="h-4 bg-muted rounded w-24"></div>
-              </td>
-              <td className="whitespace-nowrap px-3 py-4">
-                <div className="h-4 bg-muted rounded w-20"></div>
-              </td>
-              <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right sm:pr-6">
-                <div className="h-4 bg-muted rounded w-10 ml-auto"></div>
-              </td>
-            </tr>
+    <Table className="animate-pulse">
+      <TableHeader>
+        <TableRow className="hover:bg-transparent">
+          {tableHeaders.map((header) => (
+            <TableHead
+              key={`skel-head-${header.id}`}
+              className={header.className}
+            >
+              <div
+                className={`h-4 bg-muted rounded ${header.skeletonClass}`}
+              ></div>
+            </TableHead>
           ))}
-        </tbody>
-      </table>
-    </div>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {rows.map((_, idx) => (
+          <TableRow key={idx}>
+            {tableHeaders.map((header) => (
+              <TableCell
+                key={`skel-cell-${idx}-${header.id}`}
+                className={header.className}
+              >
+                <div
+                  className={`h-4 bg-muted rounded ${header.skeletonClass}`}
+                ></div>
+              </TableCell>
+            ))}
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 };
