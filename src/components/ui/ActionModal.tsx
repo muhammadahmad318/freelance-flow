@@ -11,8 +11,8 @@ import {
   ModalTitle,
   ModalDescription,
   ModalFooter,
-} from "./Modal";
-import { Button } from "./Button";
+} from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
 
 interface ActionModalProps {
   isOpen: boolean;

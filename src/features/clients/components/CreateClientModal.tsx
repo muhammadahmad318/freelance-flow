@@ -7,9 +7,9 @@
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createClientSchema } from "../validation/clientSchema";
-import type { CreateClientDTO } from "../types/client";
-import { useCreateClient } from "../hooks/useClients";
+import { createClientSchema } from "@/features/clients/validation/clientSchema";
+import type { CreateClientDTO } from "@/features/clients/types/client";
+import { useCreateClient } from "@/features/clients/hooks/useClients";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import {
