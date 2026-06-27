@@ -10,32 +10,22 @@ import { useClients } from "../hooks/useClients";
 import { useDebounce } from "@/hooks/useDebounce";
 import { ClientList, ClientListSkeleton } from "../components/ClientList";
 import { EmptyState } from "@/components/EmptyState";
-import { CreateClientModal } from "../components/CreateClientModal";
-import { Pagination } from "@/components/ui/Pagination";
 import { Button } from "@/components/ui/Button";
+import { ClientModal } from "../components/ClientModal";
 
 export const ClientsPage: React.FC = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Search & Pagination State
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(5);
-
-  // Debounce search input by 300ms to prevent API thrashing
   const debouncedSearch = useDebounce(searchTerm, 300);
 
-  // Reset to page 1 whenever a new search query is executed
   useEffect(() => {
     setPage(1);
   }, [debouncedSearch]);
 
-  // Fetch paginated data from the backend
-  const { data, isLoading, isFetching, isError, error } = useClients({
-    page,
-    limit,
-    search: debouncedSearch,
-  });
+  const { data, isLoading, isFetching, isError, error } = useClients({ page, limit, search: debouncedSearch, });
 
   const clients = data?.data || [];
   const meta = data?.meta;
@@ -45,48 +35,42 @@ export const ClientsPage: React.FC = () => {
 
   return (
     <div className="mx-auto max-w-7xl">
-      {/* Page Header */}
-      <div className="sm:flex sm:items-center sm:justify-between mb-6">
+      
+      {/* Flattened Header Section */}
+      <header className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-foreground">Clients</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-1 text-sm text-muted-foreground">
             A list of all your clients including their name, contact details,
             and organization.
           </p>
         </div>
-        <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-          <Button onClick={openModal}>Add Client</Button>
-        </div>
-      </div>
+        <Button onClick={openModal} className="w-full sm:w-auto">
+          Add Client
+        </Button>
+      </header>
 
-      {/* Search Toolbar */}
-      <div className="mb-6 flex items-center max-w-md">
-        <div className="relative w-full">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <Search
-              className="h-4 w-4 text-muted-foreground"
-              aria-hidden="true"
-            />
-          </div>
-          <input
-            type="text"
-            placeholder="Search by name, email, or company..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="block w-full rounded-md border border-border bg-background py-2 pl-10 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
-          />
-          {/* Subtle spinner while background fetch happens for search */}
-          {isFetching && searchTerm !== debouncedSearch && (
-            <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-            </div>
-          )}
-        </div>
+      {/* Flattened Search Toolbar */}
+      <div className="relative mb-6 max-w-md">
+        <Search
+          className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none"
+          aria-hidden="true"
+        />
+        <input
+          type="text"
+          placeholder="Search by name, email, or company..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full rounded-md border border-border bg-background py-2 pl-10 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
+        />
+        {isFetching && searchTerm !== debouncedSearch && (
+          <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+        )}
       </div>
 
       {/* Error State */}
       {isError && (
-        <div className="rounded-md bg-destructive/10 p-4 border border-destructive/20 text-sm text-destructive">
+        <div className="mb-6 rounded-md bg-destructive/10 p-4 border border-destructive/20 text-sm text-destructive">
           Error: {error instanceof Error ? error.message : "Unknown error"}
         </div>
       )}
@@ -107,7 +91,7 @@ export const ClientsPage: React.FC = () => {
         />
       )}
 
-      {/* No Search Results */}
+      {/* Empty State (No Search Results) */}
       {!isLoading && !isError && clients.length === 0 && debouncedSearch && (
         <div className="py-12 text-center border border-border rounded-lg border-dashed">
           <p className="text-sm text-muted-foreground">
@@ -122,34 +106,19 @@ export const ClientsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Data Table & Pagination Composition */}
+      {/* Data Table with Integrated Pagination */}
       {!isError && clients.length > 0 && (
-        <div
-          className={`${
-            isFetching ? "opacity-60" : "opacity-100"
-          } transition-opacity duration-200`}
-        >
-          {/* The data table now natively handles internal scrolling while keeping the header sticky */}
-          <ClientList clients={clients} />
-
-          {/* The advanced pagination controls synced perfectly to the backend metadata */}
-          {meta && (
-            <Pagination
-              currentPage={meta.currentPage}
-              totalPages={meta.totalPages}
-              totalRecords={meta.totalRecords}
-              limit={limit}
-              hasNextPage={meta.hasNextPage}
-              hasPreviousPage={meta.hasPreviousPage}
-              onPageChange={setPage}
-              onLimitChange={setLimit}
-              isFetching={isFetching}
-            />
-          )}
-        </div>
+        <ClientList
+          clients={clients}
+          meta={meta}
+          limit={limit}
+          onPageChange={setPage}
+          onLimitChange={setLimit}
+          isFetching={isFetching}
+        />
       )}
 
-      <CreateClientModal isOpen={isModalOpen} onClose={closeModal} />
+      <ClientModal isOpen={isModalOpen} onClose={closeModal} />
     </div>
   );
 };
