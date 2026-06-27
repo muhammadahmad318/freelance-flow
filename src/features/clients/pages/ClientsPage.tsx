@@ -6,12 +6,13 @@
  */
 import React, { useState, useEffect } from "react";
 import { Search, Loader2 } from "lucide-react";
-import { useClients } from "../hooks/useClients";
+import { useClients } from "@/features/clients/hooks/useClients";
 import { useDebounce } from "@/hooks/useDebounce";
 import { ClientList, ClientListSkeleton } from "../components/ClientList";
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/Button";
-import { ClientModal } from "../components/ClientModal";
+import { ClientModal } from "@/features/clients/components/ClientModal";
+import { useToast } from "@/contexts/ToastContext";
 
 export const ClientsPage: React.FC = () => {
 
@@ -20,22 +21,35 @@ export const ClientsPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(5);
   const debouncedSearch = useDebounce(searchTerm, 300);
-
-  useEffect(() => {
-    setPage(1);
-  }, [debouncedSearch]);
-
+  const { toast } = useToast();
+  
   const { data, isLoading, isFetching, isError, error } = useClients({ page, limit, search: debouncedSearch, });
-
+  
   const clients = data?.data || [];
   const meta = data?.meta;
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
+  
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch]);
+
+  useEffect(() => {
+    if (isError) {
+      toast({
+        type: "error",
+        title: "Failed to load clients",
+        description: error instanceof Error ? error.message : "An unknown network error occurred.",
+      });
+    }
+  }, [isError, error, toast]);
+
+
 
   return (
     <div className="mx-auto max-w-7xl">
-      
+
       {/* Flattened Header Section */}
       <header className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -67,13 +81,6 @@ export const ClientsPage: React.FC = () => {
           <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
         )}
       </div>
-
-      {/* Error State */}
-      {isError && (
-        <div className="mb-6 rounded-md bg-destructive/10 p-4 border border-destructive/20 text-sm text-destructive">
-          Error: {error instanceof Error ? error.message : "Unknown error"}
-        </div>
-      )}
 
       {/* Initial Load Skeleton */}
       {isLoading && !clients.length && <ClientListSkeleton />}

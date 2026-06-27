@@ -9,23 +9,19 @@
 
 /* 2. Tailwind v4 Theme Configuration */
 @theme {
+
+  /* Basic Colors */
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
-
   --color-muted: hsl(var(--muted));
   --color-muted-foreground: hsl(var(--muted-foreground));
-
   --color-primary: hsl(var(--primary));
   --color-primary-foreground: hsl(var(--primary-foreground));
-
   --color-secondary: hsl(var(--secondary));
   --color-secondary-foreground: hsl(var(--secondary-foreground));
-
   --color-destructive: hsl(var(--destructive));
   --color-destructive-foreground: hsl(var(--destructive-foreground));
-
   --color-border: hsl(var(--border));
-
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: var(--radius);
   --radius-lg: calc(var(--radius) + 2px);
@@ -34,6 +30,11 @@
   --animate-fade-in: fade-in 0.3s ease-out;
   --animate-slide-up: slide-up 0.4s ease-out;
   --animate-pulse-subtle: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+
+  /* Toast & Timer Animations */
+  --animate-toast-in: toast-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-toast-out: toast-out 0.2s ease-in forwards;
+  --animate-timer-shrink: shrink var(--toast-duration, 5000ms) linear forwards;
 
   @keyframes fade-in {
     0% {
@@ -63,6 +64,21 @@
     50% {
       opacity: 0.7;
     }
+  }
+
+  @keyframes toast-in {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  @keyframes toast-out {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+  }
+
+  @keyframes shrink {
+    0% { width: 100%; }
+    100% { width: 0%; }
   }
 }
 
