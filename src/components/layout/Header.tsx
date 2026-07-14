@@ -5,7 +5,7 @@
  * Contains the mobile menu trigger, theme toggle, and user profile utilities.
  */
 import React from "react";
-import { Menu, Moon, Sun, User } from "lucide-react";
+import { Menu, Moon, Sun } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 
 interface HeaderProps {
