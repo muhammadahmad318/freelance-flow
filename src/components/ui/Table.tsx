@@ -2,8 +2,8 @@
  * src/components/ui/Table.tsx
  *
  * Consolidated, reusable Table primitives.
- * Utilizes native HTML sections (thead, tbody, tfoot) with sticky positioning
- * to create a seamless, internally scrolling data table with integrated pagination.
+ * Utilizes Context to effortlessly pass global fetching states to the header,
+ * ensuring a native, sticky progress bar without prop drilling.
  */
 import React, { createContext, useContext } from "react";
 import {
@@ -13,9 +13,8 @@ import {
   ChevronsRight,
 } from "lucide-react";
 
-
 /**
- * Use context to share the isFetching state between Table and TableBody.
+ * Context to share the isFetching state internally within the Table tree.
  */
 const TableContext = createContext<{ isFetching?: boolean }>({});
 
@@ -57,20 +56,41 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(
         />
       </div>
     </TableContext.Provider>
-  ),
+  )
 );
 Table.displayName = "Table";
 
 /**
- * TableHeader component.
+ * TableHeader intercepts the fetching state to render an absolutely positioned,
+ * sticky progress bar at its bottom edge. This prevents DOM layout shifts.
  */
-export const TableHeader = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(({ className = "", ...props }, ref) => (
-  <thead
-    ref={ref}
-    className={`sticky top-0 bg-muted ${className}`}
-    {...props}
-  />
-));
+export const TableHeader = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(({ className = "", children, ...props }, ref) => {
+  const { isFetching } = useContext(TableContext);
+
+  return (
+    <thead
+      ref={ref}
+      className={`sticky top-0 bg-muted/95 backdrop-blur ${className}`}
+      {...props}
+    >
+      {children}
+
+      {/* Loading State */}
+      {isFetching && (
+        <tr>
+          <th colSpan={100} className="p-0 m-0 border-none relative h-px bg-primary/20 overflow-hidden">
+            <div
+              className="absolute top-0 bottom-0 bg-primary"
+              style={{
+                animation: "indeterminate-stretch 1.5s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite",
+              }}
+            />
+          </th>
+        </tr>
+      )}
+    </thead>
+  );
+});
 TableHeader.displayName = "TableHeader";
 
 /**
@@ -88,36 +108,13 @@ TableHead.displayName = "TableHead";
 /**
  * TableBody component.
  */
-export const TableBody = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(
-  ({ className = "", children, ...props }, ref) => {
-
-    const { isFetching } = useContext(TableContext);
-
-    return (
-      <tbody
-        ref={ref}
-        className={`divide-y divide-border bg-background ${className}`}
-        {...props}
-      >
-        {isFetching && (
-          <tr>
-            <td colSpan={100} className="p-0 border-none h-0">
-              <div className="relative w-full h-px bg-primary/20 overflow-hidden">
-                <div
-                  className="absolute top-0 bottom-0 bg-primary"
-                  style={{
-                    animation: "indeterminate-stretch 1.5s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite",
-                  }}
-                />
-              </div>
-            </td>
-          </tr>
-        )}
-        {children}
-      </tbody>
-    );
-  }
-);
+export const TableBody = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(({ className = "", ...props }, ref) => (
+  <tbody
+    ref={ref}
+    className={`divide-y divide-border bg-background ${className}`}
+    {...props}
+  />
+));
 TableBody.displayName = "TableBody";
 
 /**
@@ -174,17 +171,12 @@ export const TablePagination = React.forwardRef<HTMLDivElement, TablePaginationP
       {...props}
     >
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        {/* Record Count */}
         <div>
-          Showing{" "}
-          <span className="font-medium text-foreground">{startRecord}</span>{" "}
-          to <span className="font-medium text-foreground">{endRecord}</span>{" "}
-          of{" "}
-          <span className="font-medium text-foreground">{totalRecords}</span>{" "}
-          entries
+          Showing <span className="font-medium text-foreground">{startRecord}</span> to{" "}
+          <span className="font-medium text-foreground">{endRecord}</span> of{" "}
+          <span className="font-medium text-foreground">{totalRecords}</span> entries
         </div>
 
-        {/* Controls */}
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <span>Rows per page</span>
@@ -195,7 +187,7 @@ export const TablePagination = React.forwardRef<HTMLDivElement, TablePaginationP
                 onPageChange(1);
               }}
               disabled={isFetching}
-              className="bg-transparent border border-border rounded px-1 py-0.5 outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
+              className="bg-transparent border border-border rounded px-1 py-0.5 outline-none focus:ring-1 focus:ring-primary disabled:opacity-50 transition-opacity"
             >
               {[5, 10, 25, 50].map((val) => (
                 <option key={val} value={val}>
@@ -209,33 +201,31 @@ export const TablePagination = React.forwardRef<HTMLDivElement, TablePaginationP
             <button
               onClick={() => onPageChange(1)}
               disabled={!hasPrev || isFetching}
-              className="p-1 rounded hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-1 rounded hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronsLeft className="w-4 h-4" />
             </button>
             <button
               onClick={() => onPageChange(currentPage - 1)}
               disabled={!hasPrev || isFetching}
-              className="p-1 rounded hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-1 rounded hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-
             <span className="px-2 font-medium">
               {currentPage} / {totalPages}
             </span>
-
             <button
               onClick={() => onPageChange(currentPage + 1)}
               disabled={!hasNext || isFetching}
-              className="p-1 rounded hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-1 rounded hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
             <button
               onClick={() => onPageChange(totalPages)}
               disabled={!hasNext || isFetching}
-              className="p-1 rounded hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-1 rounded hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronsRight className="w-4 h-4" />
             </button>
@@ -244,6 +234,6 @@ export const TablePagination = React.forwardRef<HTMLDivElement, TablePaginationP
       </div>
     </div>
   );
-},
+}
 );
 TablePagination.displayName = "TablePagination";
