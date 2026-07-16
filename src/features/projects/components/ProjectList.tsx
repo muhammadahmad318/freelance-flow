@@ -193,7 +193,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({ projects, meta, limit,
       >
         <Table
           wrapperClassName="flex-1"
-          className="table-fixed w-full h-full"
+          className={`table-fixed w-full ${projects.length === 0 ? "h-full" : ""}`}
           isFetching={isFetching}
         >
           <TableHeader>
