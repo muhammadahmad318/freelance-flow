@@ -15,6 +15,9 @@ import SignupPage from "@/features/auth/pages/SignupPage";
 // Clients Domain Pages
 import { ClientsPage } from "@/features/clients/pages/ClientsPage";
 
+// Projects Domain Pages
+import { ProjectsPage } from "@/features/projects/pages/ProjectsPage";
+
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -54,6 +57,10 @@ export const router = createBrowserRouter([
             // 3. The Feature Page: Injected into the DashboardLayout's <Outlet />
             path: "/dashboard/clients",
             element: <ClientsPage />,
+          },
+          {
+            path: "/dashboard/projects",
+            element: <ProjectsPage />,
           },
         ],
       },

@@ -27,6 +27,21 @@ export interface TableProps extends React.HTMLAttributes<HTMLTableElement> {
 }
 
 /**
+ * Props for the TableBody component.
+ */
+interface TableBodyProps extends React.HTMLAttributes<HTMLTableSectionElement> {
+  isEmpty?: boolean;
+  emptyState?: {
+    colSpan: number;
+    icon?: React.ReactNode;
+    title: string;
+    description?: string;
+    action?: React.ReactNode;
+    className?: string;
+  };
+}
+
+/**
  * Props for the Pagination component.
  */
 interface TablePaginationProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -37,6 +52,17 @@ interface TablePaginationProps extends React.HTMLAttributes<HTMLDivElement> {
   onPageChange: (page: number) => void;
   onLimitChange: (limit: number) => void;
   isFetching?: boolean;
+}
+
+/**
+ * Props for the TableEmptyState Component
+ */
+interface TableEmptyStateProps extends React.HTMLAttributes<HTMLTableCellElement> {
+  colSpan: number;
+  icon?: React.ReactNode;
+  title: string;
+  description?: string;
+  action?: React.ReactNode;
 }
 
 
@@ -108,13 +134,21 @@ TableHead.displayName = "TableHead";
 /**
  * TableBody component.
  */
-export const TableBody = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(({ className = "", ...props }, ref) => (
-  <tbody
-    ref={ref}
-    className={`divide-y divide-border bg-background ${className}`}
-    {...props}
-  />
-));
+export const TableBody = React.forwardRef<HTMLTableSectionElement, TableBodyProps>(
+  ({ className = "", isEmpty, emptyState, children, ...props }, ref) => (
+    <tbody
+      ref={ref}
+      className={`divide-y divide-border bg-background ${className}`}
+      {...props}
+    >
+      {isEmpty && emptyState ? (
+        <TableEmptyState {...emptyState} />
+      ) : (
+        children
+      )}
+    </tbody>
+  )
+);
 TableBody.displayName = "TableBody";
 
 /**
@@ -237,3 +271,33 @@ export const TablePagination = React.forwardRef<HTMLDivElement, TablePaginationP
 }
 );
 TablePagination.displayName = "TablePagination";
+
+
+/**
+ * TableEmptyState Component
+ */
+export const TableEmptyState = React.forwardRef<HTMLTableCellElement, TableEmptyStateProps>(({ colSpan, icon, title, description, action, className = "", ...props }, ref) => (
+  <TableRow className="hover:bg-transparent">
+    <TableCell
+      ref={ref}
+      colSpan={colSpan}
+      className={`align-middle text-center`}
+      {...props}
+    >
+      <div className={`flex flex-col items-center justify-center space-y-4 ${className}`}>
+        {icon && (
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted/50">
+            {icon}
+          </div>
+        )}
+        <div className="text-sm text-muted-foreground max-w-sm">
+          <p className="font-medium text-foreground">{title}</p>
+          {description && <p className="mt-1">{description}</p>}
+        </div>
+        {action && <div className="mt-2">{action}</div>}
+      </div>
+    </TableCell>
+  </TableRow>
+)
+);
+TableEmptyState.displayName = "TableEmptyState";
